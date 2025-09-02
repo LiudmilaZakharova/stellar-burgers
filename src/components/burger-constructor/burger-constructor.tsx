@@ -1,24 +1,53 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
+import { useSelector } from 'react-redux';
+import {
+  resetBurgerConstructor,
+  selectConstructorState
+} from '../../services/slices/constructor';
+import { useDispatch } from '../../services/store';
+import { fetchIngredients } from '../../services/slices/ingredients';
+import {
+  clearOrderModalData,
+  createOrderBurger,
+  selectOrderModalData,
+  selectOrderRequest
+} from '../../services/slices/order';
+import { useNavigate } from 'react-router-dom';
+import { selectUser } from '../../services/slices/user';
 
 export const BurgerConstructor: FC = () => {
   /** TODO: взять переменные constructorItems, orderRequest и orderModalData из стора */
-  const constructorItems = {
-    bun: {
-      price: 0
-    },
-    ingredients: []
-  };
+  const constructorItems = useSelector(selectConstructorState);
+  const orderRequest = useSelector(selectOrderRequest);
+  const orderModalData = useSelector(selectOrderModalData);
 
-  const orderRequest = false;
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const orderModalData = null;
+  const user = useSelector(selectUser);
 
   const onOrderClick = () => {
     if (!constructorItems.bun || orderRequest) return;
+    const order = [
+      constructorItems.bun?._id,
+      ...constructorItems.ingredients.map((item) => item._id),
+      constructorItems.bun?._id
+    ];
+    dispatch(createOrderBurger(order));
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
   };
-  const closeOrderModal = () => {};
+
+  const closeOrderModal = () => {
+    dispatch(resetBurgerConstructor());
+    dispatch(clearOrderModalData());
+    navigate('/');
+  };
 
   const price = useMemo(
     () =>
@@ -29,8 +58,6 @@ export const BurgerConstructor: FC = () => {
       ),
     [constructorItems]
   );
-
-  return null;
 
   return (
     <BurgerConstructorUI
