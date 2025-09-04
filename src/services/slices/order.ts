@@ -62,6 +62,7 @@ const orderSlice = createSlice({
       .addCase(getOrderByNumber.fulfilled, (state, action) => {
         state.orderRequest = action.payload.success;
         state.isLoading = false;
+        state.orderByNumber = action.payload.orders?.[0] || null;
       })
       .addCase(getOrderByNumber.rejected, (state, action) => {
         state.orderRequest = false;

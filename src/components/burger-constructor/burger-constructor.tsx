@@ -7,14 +7,13 @@ import {
   selectConstructorState
 } from '../../services/slices/constructor';
 import { useDispatch } from '../../services/store';
-import { fetchIngredients } from '../../services/slices/ingredients';
 import {
   clearOrderModalData,
   createOrderBurger,
   selectOrderModalData,
   selectOrderRequest
 } from '../../services/slices/order';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { selectUser } from '../../services/slices/user';
 
 export const BurgerConstructor: FC = () => {
@@ -25,10 +24,26 @@ export const BurgerConstructor: FC = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const user = useSelector(selectUser);
 
+  useEffect(() => {
+    if (orderModalData) {
+      dispatch(resetBurgerConstructor());
+    }
+  }, [orderModalData, dispatch]);
+
+  useEffect(() => {
+    dispatch(clearOrderModalData());
+  }, [location.pathname, dispatch]);
+
   const onOrderClick = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (!constructorItems.bun || orderRequest) return;
     const order = [
       constructorItems.bun?._id,
@@ -36,15 +51,9 @@ export const BurgerConstructor: FC = () => {
       constructorItems.bun?._id
     ];
     dispatch(createOrderBurger(order));
-
-    if (!user) {
-      navigate('/login');
-      return;
-    }
   };
 
   const closeOrderModal = () => {
-    dispatch(resetBurgerConstructor());
     dispatch(clearOrderModalData());
     navigate('/');
   };
