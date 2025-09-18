@@ -6,7 +6,7 @@ import {
   TLoginData,
   TRegisterData,
   updateUserApi
-} from '@api';
+} from '../../utils/burger-api';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { TUser } from '@utils-types';
 import { deleteCookie, getCookie, setCookie } from '../../utils/cookie';
@@ -63,15 +63,25 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-export const checkAuth = createAsyncThunk('user/check', (_, { dispatch }) => {
-  if (getCookie('accessToken')) {
-    dispatch(fetchUser()).finally(() => {
-      dispatch(isAuthChecked());
-    });
-  } else {
+export const checkAuth = createAsyncThunk(
+  'user/check',
+  async (_, { dispatch }) => {
+    if (getCookie('accessToken')) {
+      await dispatch(fetchUser());
+    }
     dispatch(isAuthChecked());
   }
-});
+);
+
+// export const checkAuth = createAsyncThunk('user/check', (_, { dispatch }) => {
+//   if (getCookie('accessToken')) {
+//     dispatch(fetchUser()).finally(() => {
+//       dispatch(isAuthChecked());
+//     });
+//   } else {
+//     dispatch(isAuthChecked());
+//   }
+// });
 
 const userSlice = createSlice({
   name: 'user',
@@ -133,6 +143,8 @@ const userSlice = createSlice({
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
         state.user = action.payload.user;
+        state.isLoading = false;
+        state.isAuthChecked = true;
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.error = action.error.message;
